@@ -1,0 +1,16 @@
+{
+  "updated_at": "2026-07-22",
+  "project": "Wisdom Wear E-Commerce",
+  "tenants": {
+    "wisdomwear": {
+      "name": "Wisdom Wear",
+      "domain": "wisdomwear.com.br",
+      "env_file": "env/local/20-tenants/wisdomwear/wisdomwear.env",
+      "services": {
+        "gateway": "Asaas Subaccount (No Split)",
+        "shipping": "Melhor Envio API v2",
+        "database": "PostgreSQL / Prisma ORM"
+      }
+    }
+  }
+}
