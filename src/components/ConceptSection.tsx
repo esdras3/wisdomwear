@@ -17,16 +17,7 @@ export default function ConceptSection() {
       <div className="container" style={{ textAlign: 'center', maxWidth: '840px' }}>
         {/* Decorative Symbol Accent */}
         <div style={{ display: 'inline-block', marginBottom: '20px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '32px',
-              color: '#C6A85A',
-              fontWeight: 700
-            }}
-          >
-            W / E
-          </span>
+          <img src="/images/wisdom_symbol.png" alt="Símbolo Wisdom" style={{ height: '48px', objectFit: 'contain' }} />
         </div>
 
         <h2

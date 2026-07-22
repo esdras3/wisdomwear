@@ -111,12 +111,13 @@ export default function Header() {
         </nav>
 
         {/* Center Logo */}
-        <Link href="/" style={{ textDecoration: 'none', textAlign: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Link href="/" style={{ textDecoration: 'none', textAlign: 'center', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src="/images/wisdom_symbol.png" alt="Wisdom Symbol" style={{ height: '36px', objectFit: 'contain' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
             <span
               style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: '26px',
+                fontSize: '22px',
                 fontWeight: 700,
                 color: '#C6A85A',
                 letterSpacing: '0.15em',
@@ -128,12 +129,12 @@ export default function Header() {
             </span>
             <span
               style={{
-                fontSize: '9px',
+                fontSize: '8px',
                 fontWeight: 600,
                 color: '#111111',
                 letterSpacing: '0.3em',
                 textTransform: 'uppercase',
-                marginTop: '2px'
+                marginTop: '1px'
               }}
             >
               WEAR

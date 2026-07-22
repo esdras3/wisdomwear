@@ -22,6 +22,11 @@ export const metadata: Metadata = {
   description:
     'Wisdom é uma marca de vestuário Lifestyle Premium. Luxo moderno acessível, peças minimalistas de alta qualidade, alfaiataria atemporal e silêncio sofisticado.',
   keywords: ['Wisdom Wear', 'Camisetas Premium', 'Silent Luxury', 'Moda Minimalista', 'Vestuário Masculino Premium'],
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
     title: 'Wisdom Wear | Vista sua presença',
     description: 'Estilo que fala baixo e impacta alto. Coleção minimalista premium.',
