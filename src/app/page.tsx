@@ -42,7 +42,7 @@ export default function Home() {
             <div style={{ position: 'relative', width: '100%', paddingTop: '120%', overflow: 'hidden' }}>
               {/* eslint-disable-next-html-loader */}
               <img
-                src="file:///C:/Users/Esdras/.gemini/antigravity/brain/76322a0a-7345-47cb-8459-f17466c9fc77/wisdom_hero_hero_banner_1784757733271.jpg"
+                src="/images/wisdom_hero.jpg"
                 alt="Wisdom Wear Lifestyle"
                 style={{
                   position: 'absolute',

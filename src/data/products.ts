@@ -26,8 +26,8 @@ export const PRODUCTS: Product[] = [
     ],
     sizes: ['P', 'M', 'G', 'GG'],
     images: [
-      'file:///C:/Users/Esdras/.gemini/antigravity/brain/76322a0a-7345-47cb-8459-f17466c9fc77/wisdom_product_tshirt_black_1784757745368.jpg',
-      'file:///C:/Users/Esdras/.gemini/antigravity/brain/76322a0a-7345-47cb-8459-f17466c9fc77/wisdom_hero_hero_banner_1784757733271.jpg'
+      '/images/wisdom_classic_black.jpg',
+      '/images/wisdom_hero.jpg'
     ],
     isBestSeller: true
   },
@@ -56,7 +56,7 @@ export const PRODUCTS: Product[] = [
     ],
     sizes: ['P', 'M', 'G', 'GG'],
     images: [
-      'file:///C:/Users/Esdras/.gemini/antigravity/brain/76322a0a-7345-47cb-8459-f17466c9fc77/wisdom_product_tshirt_black_1784757745368.jpg'
+      '/images/wisdom_essential_offwhite.jpg'
     ],
     isNew: true
   },
@@ -87,7 +87,8 @@ export const PRODUCTS: Product[] = [
     ],
     sizes: ['P', 'M', 'G', 'GG'],
     images: [
-      'file:///C:/Users/Esdras/.gemini/antigravity/brain/76322a0a-7345-47cb-8459-f17466c9fc77/wisdom_hero_hero_banner_1784757733271.jpg'
+      '/images/wisdom_signature_gold.jpg',
+      '/images/wisdom_hero.jpg'
     ],
     isNew: true
   }
