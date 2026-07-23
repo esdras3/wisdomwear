@@ -2,44 +2,41 @@
 
 **Tenant**: `wisdomwear`  
 **Domínio**: `wisdomwear.com.br` | `wisdomwear.vercel.app`  
-**Status**: 🟢 Ativo & Implantado em Produção  
+**Status**: 🟢 Ativo, Seguro & Implantado em Produção  
 **Última Atualização**: `2026-07-22`  
 
 ---
 
-## 1. Relatório de Execução (O que foi feito)
+## 1. Inventário de Recursos Adicionados no Projeto
 
-- [x] **Análise do Manual e Benchmark**: Leitura de `link_modelo_instruções.txt`, `SITE WISDOM.pdf` e estudo do benchmark `INSIDER_BENCHMARK.md`.
-- [x] **Design System & Luxo Minimalista**:
-  - Implementação dos tokens oficiais (`#C6A85A` Dourado Wisdom, `#111111` Preto Profundo, `#F5F3EE` Off-White).
-  - Tipografia *Playfair Display* para títulos e *Montserrat* para corpo/botões.
-  - Extração do símbolo W/E em fita dourada do PDF para PNG transparente (`public/images/wisdom_symbol.png`).
-  - Geração do `favicon.ico` (16x16 até 64x64) e `apple-touch-icon.png`.
-  - Fotos de produto e editorial sem artefatos em `public/images/`.
-- [x] **Desenvolvimento Frontend (Next.js 14 App Router)**:
-  - Homepage com Hero Banner, Manifesto *"Não é apenas roupa."*, Grade de Produtos e História da Marca.
-  - PDP (Página de Produto) com galeria de fotos, seletor de cores, tamanhos (P, M, G, GG) e modal de Guia de Medidas.
-  - SlideCart (Gaveta de Carrinho) com régua de frete grátis (acima de R$ 299) e cupons de desconto (`WISDOM10`, `BENVINDO15`).
-  - Checkout Transparente com busca automática de CEP via ViaCEP, Pix QR Code com "Copia e Cola", Cartão em até 6x e Boleto.
-- [x] **Integrações de API**:
-  - **Subconta Asaas API v3**: Módulo `src/lib/asaas.ts`, `/api/checkout` e listener `/api/webhooks/asaas` **sem divisão de receita / split = false** (100% para a subconta Wisdom).
-  - **Logística Melhor Envio API v2**: Módulo `src/lib/melhorenvio.ts` e `/api/shipping` com simulador de CEP no carrinho e checkout.
-- [x] **Padrão VPS Multi-Tenant & Versionamento**:
-  - Estrutura de arquivos `env/local/20-tenants/wisdomwear/wisdomwear.env`, `env/catalog.json` e `.env.local`.
-  - Documentação de governança (`MAPA.md`, `AGENTS.md`, `PROJECT_STATUS.md`).
-  - Repositório GitHub: [https://github.com/esdras3/wisdomwear](https://github.com/esdras3/wisdomwear).
-  - Deploy Vercel: [https://wisdomwear.vercel.app](https://wisdomwear.vercel.app) (**● Ready**).
+### A. Painel Administrativo & Segurança
+- **Middleware Guard (`src/middleware.ts`)**: Proteção de rotas `/admin*` com redirecionamento automático para a tela de login.
+- **Tela de Login Admin (`/admin/login`)**: Formulário de autenticação seguro.
+- **APIs de Autenticação (`/api/admin/login`, `/api/admin/logout`)**: Geração e destruição de sessão via cookie HTTP-Only `wisdom_admin_session`.
+- **Credenciais de Acesso**: Salvas em `.env.local` (`ADMIN_EMAIL="admin@wisdomwear.com.br"`, `ADMIN_PASSWORD="wisdom2026"`).
+
+### B. Gestão de Produtos, Pedidos & CRM de Leads
+- **Módulo de Produtos (`/admin/produtos`)**: Cadastro de novos modelos, preços, tecido e matriz de estoque (`P`, `M`, `G`, `GG`).
+- **Módulo de Pedidos (`/admin/pedidos`)**: Histórico transacional Asaas e gerador de etiquetas do Melhor Envio.
+- **Módulo de Leads & CRM (`/admin/leads`)**: Captura de carrinhos abandonados e botão de recuperação em 1 clique via WhatsApp.
+- **Especificação da Base de Dados**: [ADMIN_DASHBOARD_SPECS.md](file:///C:/Users/Esdras/sites_app/bohnen/Documentos/ADMIN_DASHBOARD_SPECS.md) cobrindo os modelos Prisma ORM.
+
+### C. Design System & Identidade Visual
+- **Logomarca & Favicon Oficial**: Símbolo W/E em fita dourada e logotipo extraídos do PDF com fundo transparente (`wisdom_symbol.png`, `wisdom_logo.png`, `favicon.ico`, `apple-touch-icon.png`).
+- **Fotos sem Artefato**: Fotos de estúdio em alta definição em `public/images/`.
+
+### D. Integrações Financeiras & Logísticas
+- **Gateway Asaas v3 (Subconta Sem Divisão)**: Processamento de Pix dinâmico com QR Code, Cartão 6x e Boleto com 100% de repasse à subconta Wisdom.
+- **Melhor Envio API v2**: Calculadora de frete em tempo real no SlideCart e Checkout.
 
 ---
 
-## 2. Checklist de Próximos Passos (O que falta fazer)
+## 2. Checklist de Produção Real
 
-- [ ] **Credenciais Reais de Produção**:
-  - Inserir a chave de API real da Subconta Asaas (`ASAAS_SUBACCOUNT_API_KEY`) e o secret de Webhook (`ASAAS_WEBHOOK_SECRET`) no arquivo `.env.local` / Vercel.
-  - Inserir o Bearer Token real do Melhor Envio (`MELHOR_ENVIO_TOKEN`) e o CEP de origem do galpão.
-- [ ] **Persistência de Banco de Dados**:
-  - Conectar o Prisma ORM ao PostgreSQL de produção (Supabase, Neon ou VPS) para armazenamento definitivo de pedidos e clientes.
-- [ ] **Configuração do Domínio Próprio (`wisdomwear.com.br`)**:
-  - Apontar os registros DNS `A` (`76.76.21.21`) e `CNAME` (`cname.vercel-dns.com`) no registrador para a Vercel.
-- [ ] **Disparo de E-mails Transacionais**:
-  - Conectar serviço de e-mail (Resend ou SMTP Mailcow `mail.personalpay.com.br`) para notificações automáticas de compra efetuada.
+- [x] **Acesso Admin Salvo**: `ADMIN_EMAIL` e `ADMIN_PASSWORD` no `.env.local`.
+- [x] **Deploy de Produção**: [https://wisdomwear.vercel.app](https://wisdomwear.vercel.app).
+- [ ] **Credenciais Reais de Gateway & Frete**:
+  - Inserir `ASAAS_SUBACCOUNT_API_KEY` e `ASAAS_WEBHOOK_SECRET` no `.env.local` / Vercel.
+  - Inserir `MELHOR_ENVIO_TOKEN` e `MELHOR_ENVIO_POSTAL_CODE_ORIGIN`.
+- [ ] **Conexão com PostgreSQL**:
+  - Aplicar `npx prisma db push` ao banco PostgreSQL da VPS ou Supabase.
