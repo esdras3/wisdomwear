@@ -39,7 +39,17 @@ export default function AdminDashboardPage() {
             </h1>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button
+              onClick={async () => {
+                await fetch('/api/admin/logout', { method: 'POST' });
+                window.location.href = '/admin/login';
+              }}
+              className="btn btn-secondary"
+              style={{ padding: '10px 14px', fontSize: '12px' }}
+            >
+              SAIR
+            </button>
             <Link href="/admin/produtos" className="btn btn-secondary" style={{ padding: '10px 18px', fontSize: '12px' }}>
               + NOVO PRODUTO
             </Link>
