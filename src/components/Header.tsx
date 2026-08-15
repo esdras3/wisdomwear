@@ -53,22 +53,22 @@ export default function Header() {
           textTransform: 'uppercase'
         }}
       >
-        Frete Grátis para todo o Brasil em compras acima de R$ 299 | Parcelamento em até 6x no Cartão ou Pix
+        Frete grátis acima de R$ 299 · 5% OFF no Pix · Troca facilitada em até 30 dias
       </div>
 
       <div className="container" style={{ height: '72px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button — oculto no desktop via CSS */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           aria-label="Abrir Menu"
           className="mobile-only-btn"
+          type="button"
         >
           {isMobileMenuOpen ? <X size={22} color="#111111" /> : <Menu size={22} color="#111111" />}
         </button>
 
         {/* Desktop Nav Links */}
-        <nav style={{ display: 'flex', gap: '32px', alignItems: 'center' }} className="desktop-nav">
+        <nav className="desktop-nav">
           <Link
             href="/"
             style={{
@@ -201,11 +201,11 @@ export default function Header() {
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
         <div
+          className="mobile-drawer-nav"
           style={{
             backgroundColor: '#ffffff',
             borderBottom: '1px solid #eaeaea',
             padding: '24px 16px',
-            display: 'flex',
             flexDirection: 'column',
             gap: '16px'
           }}

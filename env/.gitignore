@@ -1,0 +1,3 @@
+# Ignorar segredos e artefatos gerados
+local/
+generated/

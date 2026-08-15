@@ -7,7 +7,16 @@ import { ShieldCheck, Lock, CreditCard, QrCode, FileText, CheckCircle, Copy, Arr
 import Link from 'next/link';
 
 export default function CheckoutPage() {
-  const { items, getSubtotal, getTotal, discountAmount, couponCode, clearCart } = useCartStore();
+  const {
+    items,
+    getSubtotal,
+    getTotal,
+    getPixDiscountAmount,
+    discountAmount,
+    couponCode,
+    pixDiscountPercent,
+    clearCart
+  } = useCartStore();
 
   const [mounted, setMounted] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
@@ -47,7 +56,8 @@ export default function CheckoutPage() {
   if (!mounted) return null;
 
   const subtotal = getSubtotal();
-  const total = getTotal();
+  const total = getTotal(selectedMethod);
+  const pixDiscount = selectedMethod === 'PIX' ? getPixDiscountAmount() : 0;
 
   const handleInputChange = (field: keyof CustomerData, value: string) => {
     setCustomerData((prev) => ({ ...prev, [field]: value }));
@@ -405,6 +415,9 @@ export default function CheckoutPage() {
                   >
                     <QrCode size={22} color={selectedMethod === 'PIX' ? '#C6A85A' : '#111111'} />
                     <span style={{ fontSize: '12px', fontWeight: 600 }}>PIX DINÂMICO</span>
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#C6A85A' }}>
+                      {pixDiscountPercent}% OFF
+                    </span>
                   </button>
 
                   <button
@@ -563,10 +576,24 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
+                {pixDiscount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#C6A85A', fontWeight: 600 }}>
+                    <span>Pix ({pixDiscountPercent}% OFF)</span>
+                    <span>- R$ {pixDiscount.toFixed(2).replace('.', ',')}</span>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#767676' }}>
                   <span>Frete</span>
-                  <span>GRÁTIS</span>
+                  <span>Calculado no pedido</span>
                 </div>
+
+                <p style={{ fontSize: '11px', color: '#767676', marginTop: '4px', lineHeight: 1.5 }}>
+                  Troca facilitada em até 30 dias.{' '}
+                  <Link href="/trocas" style={{ color: '#111111', textDecoration: 'underline' }}>
+                    Política de trocas
+                  </Link>
+                </p>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '20px', fontWeight: 700, color: '#111111', borderTop: '1px solid #eaeaea', paddingTop: '12px', marginTop: '4px' }}>
                   <span>TOTAL</span>

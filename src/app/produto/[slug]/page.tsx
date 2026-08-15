@@ -236,11 +236,11 @@ export default function ProductDetailPage({ params }: PageProps) {
             <div style={{ borderTop: '1px solid #eaeaea', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', color: '#767676' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Truck size={18} color="#C6A85A" />
-                <span>Frete Grátis para todo o Brasil em compras acima de R$ 299</span>
+                <span>Frete grátis acima de R$ 299 · 5% OFF no Pix</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <ShieldCheck size={18} color="#C6A85A" />
-                <span>Primeira Troca Grátis sem complicações em até 30 dias</span>
+                <span>Troca facilitada em até 30 dias</span>
               </div>
             </div>
 

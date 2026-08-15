@@ -1,0 +1,19 @@
+# Esqueleto cutover VPS — NÃO sobe tráfego até DNS apontar para Contabo
+services:
+  wisdomwear-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wisdomwear-web
+    restart: unless-stopped
+    env_file:
+      - env/generated/.env.local
+    ports:
+      - "172.22.1.1:18834:3000"
+    networks:
+      - mailcow_network
+
+networks:
+  mailcow_network:
+    external: true
+    name: mailcowdockerized_mailcow-network

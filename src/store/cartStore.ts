@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { Product, CartItem } from '@/types';
+import { Product, CartItem, PaymentMethod } from '@/types';
+import { FREE_SHIPPING_THRESHOLD, PIX_DISCOUNT_PERCENT } from '@/lib/commerce';
 
 interface CartStore {
   items: CartItem[];
@@ -8,21 +9,26 @@ interface CartStore {
   discountAmount: number;
   shippingPrice: number;
   freeShippingThreshold: number;
-  
-  // Actions
+  pixDiscountPercent: number;
+
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
-  addItem: (product: Product, selectedColor: { name: string; hex: string }, selectedSize: 'P' | 'M' | 'G' | 'GG', quantity?: number) => void;
+  addItem: (
+    product: Product,
+    selectedColor: { name: string; hex: string },
+    selectedSize: 'P' | 'M' | 'G' | 'GG',
+    quantity?: number
+  ) => void;
   removeItem: (productId: string, size: string, colorHex: string) => void;
   updateQuantity: (productId: string, size: string, colorHex: string, quantity: number) => void;
   clearCart: () => void;
   applyCoupon: (code: string) => boolean;
   setShippingPrice: (price: number) => void;
-  
-  // Getters
+
   getSubtotal: () => number;
-  getTotal: () => number;
+  getPixDiscountAmount: () => number;
+  getTotal: (paymentMethod?: PaymentMethod) => number;
   getItemCount: () => number;
   getRemainingForFreeShipping: () => number;
 }
@@ -33,7 +39,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
   couponCode: '',
   discountAmount: 0,
   shippingPrice: 0,
-  freeShippingThreshold: 299.0, // Frete grátis para compras acima de R$ 299
+  freeShippingThreshold: FREE_SHIPPING_THRESHOLD,
+  pixDiscountPercent: PIX_DISCOUNT_PERCENT,
 
   openCart: () => set({ isCartOpen: true }),
   closeCart: () => set({ isCartOpen: false }),
@@ -52,12 +59,11 @@ export const useCartStore = create<CartStore>((set, get) => ({
         const updatedItems = [...state.items];
         updatedItems[existingIndex].quantity += quantity;
         return { items: updatedItems, isCartOpen: true };
-      } else {
-        return {
-          items: [...state.items, { product, selectedColor, selectedSize, quantity }],
-          isCartOpen: true
-        };
       }
+      return {
+        items: [...state.items, { product, selectedColor, selectedSize, quantity }],
+        isCartOpen: true
+      };
     });
   },
 
@@ -100,13 +106,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
     const formatted = code.trim().toUpperCase();
     if (formatted === 'WISDOM10' || formatted === 'PRESENCA10') {
       const subtotal = get().getSubtotal();
-      const discount = subtotal * 0.1; // 10% de desconto
-      set({ couponCode: formatted, discountAmount: discount });
+      set({ couponCode: formatted, discountAmount: subtotal * 0.1 });
       return true;
-    } else if (formatted === 'BENVINDO15') {
+    }
+    if (formatted === 'BENVINDO15') {
       const subtotal = get().getSubtotal();
-      const discount = subtotal * 0.15; // 15% de desconto
-      set({ couponCode: formatted, discountAmount: discount });
+      set({ couponCode: formatted, discountAmount: subtotal * 0.15 });
       return true;
     }
     return false;
@@ -114,23 +119,26 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   setShippingPrice: (price: number) => set({ shippingPrice: price }),
 
-  getSubtotal: () => {
-    return get().items.reduce(
-      (total, item) => total + item.product.price * item.quantity,
-      0
-    );
+  getSubtotal: () =>
+    get().items.reduce((total, item) => total + item.product.price * item.quantity, 0),
+
+  getPixDiscountAmount: () => {
+    const subtotalAfterCoupon = Math.max(0, get().getSubtotal() - get().discountAmount);
+    return +(subtotalAfterCoupon * (get().pixDiscountPercent / 100)).toFixed(2);
   },
 
-  getTotal: () => {
+  getTotal: (paymentMethod?: PaymentMethod) => {
     const subtotal = get().getSubtotal();
-    const subtotalAfterDiscount = Math.max(0, subtotal - get().discountAmount);
-    const shipping = subtotalAfterDiscount >= get().freeShippingThreshold ? 0 : get().shippingPrice;
-    return subtotalAfterDiscount + shipping;
+    const afterCoupon = Math.max(0, subtotal - get().discountAmount);
+    const afterPix =
+      paymentMethod === 'PIX'
+        ? Math.max(0, afterCoupon - get().getPixDiscountAmount())
+        : afterCoupon;
+    const ship = afterCoupon >= get().freeShippingThreshold ? 0 : get().shippingPrice;
+    return afterPix + ship;
   },
 
-  getItemCount: () => {
-    return get().items.reduce((count, item) => count + item.quantity, 0);
-  },
+  getItemCount: () => get().items.reduce((count, item) => count + item.quantity, 0),
 
   getRemainingForFreeShipping: () => {
     const subtotal = get().getSubtotal();

@@ -1,8 +1,5 @@
 import { ShippingRate } from '@/types';
-
-const MELHOR_ENVIO_API_URL = process.env.MELHOR_ENVIO_API_URL || 'https://sandbox.melhorenvio.com.br/api/v2';
-const MELHOR_ENVIO_TOKEN = process.env.MELHOR_ENVIO_TOKEN || '';
-const ORIGIN_POSTAL_CODE = process.env.MELHOR_ENVIO_POSTAL_CODE_ORIGIN || '01001000'; // CEP de São Paulo como padrão
+import { wisdomEnv } from '@/lib/env';
 
 export interface CalculateShippingParams {
   destinationPostalCode: string;
@@ -13,25 +10,26 @@ export interface CalculateShippingParams {
 }
 
 /**
- * Calcula opções de frete (PAC, SEDEX, Jadlog, etc.) via API v2 do Melhor Envio
+ * Calcula opções de frete via Melhor Envio API v2
  */
 export async function calculateMelhorEnvioShipping(params: CalculateShippingParams): Promise<ShippingRate[]> {
   const cleanDestination = params.destinationPostalCode.replace(/\D/g, '');
+  const apiUrl = wisdomEnv.melhorEnvioApiUrl();
+  const token = wisdomEnv.melhorEnvioToken();
+  const originPostal = wisdomEnv.melhorEnvioOriginPostal();
 
   if (cleanDestination.length !== 8) {
     throw new Error('CEP de destino inválido.');
   }
 
-  // 1. Se estiver em ambiente MOCK sem token de API configurado
-  if (!process.env.MELHOR_ENVIO_TOKEN) {
+  if (!token) {
     console.log('[MELHOR ENVIO MOCK] Calculando frete simulado para o CEP:', cleanDestination);
 
-    // Mock realista de cálculo por região (ex: SP é mais barato)
     const isSP = cleanDestination.startsWith('0') || cleanDestination.startsWith('1');
     const isSudeste = cleanDestination.startsWith('2') || cleanDestination.startsWith('3');
 
-    const basePacPrice = isSP ? 16.90 : isSudeste ? 24.90 : 38.90;
-    const baseSedexPrice = isSP ? 22.90 : isSudeste ? 34.90 : 54.90;
+    const basePacPrice = isSP ? 16.9 : isSudeste ? 24.9 : 38.9;
+    const baseSedexPrice = isSP ? 22.9 : isSudeste ? 34.9 : 54.9;
 
     return [
       {
@@ -52,28 +50,27 @@ export async function calculateMelhorEnvioShipping(params: CalculateShippingPara
     ];
   }
 
-  // 2. Chamada real para a API do Melhor Envio
   try {
     const payload = {
-      from: { postal_code: ORIGIN_POSTAL_CODE },
+      from: { postal_code: originPostal },
       to: { postal_code: cleanDestination },
       products: params.items.map((item, idx) => ({
         id: `item-${idx}`,
-        width: 20, // cm (embalagem padrão camiseta Wisdom)
-        height: 5,  // cm
-        length: 25, // cm
-        weight: 0.3 * item.quantity, // 300g por camiseta
+        width: 20,
+        height: 5,
+        length: 25,
+        weight: 0.3 * item.quantity,
         insurance_value: item.price * item.quantity,
         quantity: item.quantity
       }))
     };
 
-    const res = await fetch(`${MELHOR_ENVIO_API_URL}/me/shipment/calculate`, {
+    const res = await fetch(`${apiUrl}/me/shipment/calculate`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${MELHOR_ENVIO_TOKEN}`,
+        Authorization: `Bearer ${token}`,
         'User-Agent': 'WisdomWear E-Commerce (contato@wisdomwear.com.br)'
       },
       body: JSON.stringify(payload)
@@ -86,20 +83,26 @@ export async function calculateMelhorEnvioShipping(params: CalculateShippingPara
       throw new Error(data.message || 'Erro ao calcular frete no Melhor Envio.');
     }
 
-    // Filtrar apenas serviços válidos sem erro
     return data
-      .filter((service: { error?: string; custom_price?: number; price?: number }) => !service.error)
-      .map((service: { name: string; custom_price?: number; price?: number; custom_delivery_time?: number; delivery_time?: number }) => ({
-        name: service.name,
-        price: Number(service.custom_price || service.price || 0),
-        deliveryDays: Number(service.custom_delivery_time || service.delivery_time || 3)
-      }));
+      .filter((service: { error?: string }) => !service.error)
+      .map(
+        (service: {
+          name: string;
+          custom_price?: number;
+          price?: number;
+          custom_delivery_time?: number;
+          delivery_time?: number;
+        }) => ({
+          name: service.name,
+          price: Number(service.custom_price || service.price || 0),
+          deliveryDays: Number(service.custom_delivery_time || service.delivery_time || 3)
+        })
+      );
   } catch (error) {
     console.error('[MELHOR ENVIO EXCEPTION]', error);
-    // Fallback de contingência
     return [
-      { name: 'PAC (Correios)', price: 22.90, deliveryDays: 5 },
-      { name: 'SEDEX Express', price: 34.90, deliveryDays: 2 }
+      { name: 'PAC (Correios)', price: 22.9, deliveryDays: 5 },
+      { name: 'SEDEX Express', price: 34.9, deliveryDays: 2 }
     ];
   }
 }

@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
+import { wisdomEnv } from '@/lib/env';
 
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@wisdomwear.com.br';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'wisdom2026';
+    const adminEmail = wisdomEnv.adminEmail();
+    const adminPassword = wisdomEnv.adminPassword();
+
+    if (!adminPassword) {
+      return NextResponse.json({ error: 'Admin não configurado' }, { status: 503 });
+    }
 
     if (email === adminEmail && password === adminPassword) {
       const response = NextResponse.json({ success: true, message: 'Autenticado com sucesso' });

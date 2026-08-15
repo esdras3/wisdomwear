@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "env:build": "python scripts/build_env_local.py --validate",
+    "env:build:root": "python scripts/build_env_local.py --output .env.local --write-root --validate",
+    "env:diff": "python scripts/build_env_local.py --diff --validate"
   },
   "dependencies": {
     "lucide-react": "^1.25.0",

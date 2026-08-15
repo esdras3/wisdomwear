@@ -61,16 +61,16 @@ export default function Footer() {
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
               <li>
-                <Link href="#produtos" style={{ color: 'inherit', textDecoration: 'none' }}>Coleção de Camisetas</Link>
+                <Link href="/contato" style={{ color: 'inherit', textDecoration: 'none' }}>Contato / Atendimento</Link>
               </li>
               <li>
-                <Link href="#conceito" style={{ color: 'inherit', textDecoration: 'none' }}>Manifesto Wisdom</Link>
+                <Link href="/#produtos" style={{ color: 'inherit', textDecoration: 'none' }}>Coleção de Camisetas</Link>
               </li>
               <li>
-                <Link href="#sobre" style={{ color: 'inherit', textDecoration: 'none' }}>Sobre a Marca</Link>
+                <Link href="/#conceito" style={{ color: 'inherit', textDecoration: 'none' }}>Manifesto Wisdom</Link>
               </li>
               <li>
-                <Link href="/guia-tamanhos" style={{ color: 'inherit', textDecoration: 'none' }}>Guia de Medidas</Link>
+                <Link href="/#sobre" style={{ color: 'inherit', textDecoration: 'none' }}>Sobre a Marca</Link>
               </li>
             </ul>
           </div>
@@ -82,16 +82,25 @@ export default function Footer() {
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
               <li>
-                <a href="#politicas" style={{ color: 'inherit', textDecoration: 'none' }}>Trocas e Devoluções Grátis</a>
+                <Link href="/contato" style={{ color: 'inherit', textDecoration: 'none' }}>Contato</Link>
               </li>
               <li>
-                <a href="#frete" style={{ color: 'inherit', textDecoration: 'none' }}>Envio e Entrega</a>
+                <Link href="/trocas" style={{ color: 'inherit', textDecoration: 'none' }}>Trocas e Devoluções</Link>
               </li>
               <li>
-                <a href="#privacidade" style={{ color: 'inherit', textDecoration: 'none' }}>Política de Privacidade</a>
+                <Link href="/envio" style={{ color: 'inherit', textDecoration: 'none' }}>Envio e Entrega</Link>
               </li>
               <li>
-                <a href="#termos" style={{ color: 'inherit', textDecoration: 'none' }}>Termos de Serviço</a>
+                <Link href="/pagamento" style={{ color: 'inherit', textDecoration: 'none' }}>Pagamento Seguro</Link>
+              </li>
+              <li>
+                <Link href="/privacidade" style={{ color: 'inherit', textDecoration: 'none' }}>Privacidade (LGPD)</Link>
+              </li>
+              <li>
+                <Link href="/cookies" style={{ color: 'inherit', textDecoration: 'none' }}>Cookies</Link>
+              </li>
+              <li>
+                <Link href="/termos" style={{ color: 'inherit', textDecoration: 'none' }}>Termos de Serviço</Link>
               </li>
             </ul>
           </div>
@@ -106,7 +115,7 @@ export default function Footer() {
             </p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
               <span style={{ backgroundColor: '#1a1a1a', border: '1px solid #333', padding: '6px 12px', fontSize: '11px', fontWeight: 600, color: '#C6A85A' }}>
-                PIX INSTANTÂNEO
+                PIX COM 5% OFF
               </span>
               <span style={{ backgroundColor: '#1a1a1a', border: '1px solid #333', padding: '6px 12px', fontSize: '11px', fontWeight: 600, color: '#ffffff' }}>
                 CARTÃO ATÉ 6X

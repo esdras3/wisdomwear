@@ -205,3 +205,36 @@ a {
     padding: 0 16px;
   }
 }
+
+/* Header: hamburger só no mobile; links só no desktop */
+.mobile-only-btn {
+  display: none !important;
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-items: center;
+}
+
+.desktop-nav {
+  display: flex !important;
+  gap: 32px;
+  align-items: center;
+}
+
+.mobile-drawer-nav {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-only-btn {
+    display: flex !important;
+  }
+
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .mobile-drawer-nav {
+    display: flex;
+  }
+}

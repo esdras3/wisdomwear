@@ -1,16 +1,66 @@
 {
   "updated_at": "2026-07-22",
   "project": "Wisdom Wear E-Commerce",
+  "runtime": "single-tenant",
   "tenants": {
     "wisdomwear": {
       "name": "Wisdom Wear",
       "domain": "wisdomwear.com.br",
-      "env_file": "env/local/20-tenants/wisdomwear/wisdomwear.env",
+      "prefix": "WISDOMWEAR_",
+      "env_dir": "env/local/20-tenants/wisdomwear",
       "services": {
         "gateway": "Asaas Subaccount (No Split)",
         "shipping": "Melhor Envio API v2",
-        "database": "PostgreSQL / Prisma ORM"
+        "database": "PostgreSQL (Prisma — próxima fase)",
+        "hosting": "Vercel + Cloudflare (VPS Docker prep)"
       }
     }
-  }
+  },
+  "lookup_rules": [
+    {
+      "match_prefixes": ["WISDOMWEAR_ADMIN_", "WISDOMWEAR_DATABASE_", "ADMIN_", "DATABASE_"],
+      "target_file": "env/local/20-tenants/wisdomwear/core.env",
+      "scope": "tenant"
+    },
+    {
+      "match_prefixes": ["WISDOMWEAR_ASAAS_", "ASAAS_"],
+      "target_file": "env/local/20-tenants/wisdomwear/billing.env",
+      "scope": "tenant"
+    },
+    {
+      "match_prefixes": ["WISDOMWEAR_MELHOR_ENVIO_", "MELHOR_ENVIO_"],
+      "target_file": "env/local/20-tenants/wisdomwear/shipping.env",
+      "scope": "tenant"
+    },
+    {
+      "match_prefixes": ["WISDOMWEAR_APP_", "WISDOMWEAR_TENANT_", "NEXT_PUBLIC_"],
+      "target_file": "env/local/20-tenants/wisdomwear/app.env",
+      "scope": "tenant"
+    },
+    {
+      "match_prefixes": ["CLOUDFLARE_", "VPS_", "VERCEL_"],
+      "target_file": "env/local/10-platform/hosting.env",
+      "scope": "platform"
+    }
+  ],
+  "merge_order": [
+    "env/local/00-global/infra.env",
+    "env/local/10-platform/hosting.env",
+    "env/local/20-tenants/wisdomwear/core.env",
+    "env/local/20-tenants/wisdomwear/billing.env",
+    "env/local/20-tenants/wisdomwear/shipping.env",
+    "env/local/20-tenants/wisdomwear/app.env",
+    "env/local/30-operators/ops.env",
+    "env/local/99-local/overrides.env"
+  ],
+  "files": [
+    "env/local/00-global/infra.env",
+    "env/local/10-platform/hosting.env",
+    "env/local/20-tenants/wisdomwear/core.env",
+    "env/local/20-tenants/wisdomwear/billing.env",
+    "env/local/20-tenants/wisdomwear/shipping.env",
+    "env/local/20-tenants/wisdomwear/app.env",
+    "env/local/30-operators/ops.env",
+    "env/local/99-local/overrides.env"
+  ]
 }

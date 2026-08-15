@@ -1,24 +1,28 @@
 import { CustomerData, PaymentMethod, CreditCardData, AsaasPaymentResult } from '@/types';
+import { wisdomEnv } from '@/lib/env';
 
-const ASAAS_API_URL = process.env.ASAAS_API_URL || 'https://sandbox.asaas.com/api/v3';
-const ASAAS_API_KEY = process.env.ASAAS_SUBACCOUNT_API_KEY || '$aact_mock_wisdom_subaccount_key_12345';
+function asaasConfig() {
+  return {
+    apiUrl: wisdomEnv.asaasApiUrl(),
+    apiKey: wisdomEnv.asaasApiKey(),
+  };
+}
 
 /**
  * Cria ou busca um cliente cadastrado no Asaas via CPF/CNPJ
  */
 export async function getOrCreateAsaasCustomer(data: CustomerData): Promise<string> {
   const cleanCpf = data.cpfCnpj.replace(/\D/g, '');
+  const { apiUrl, apiKey } = asaasConfig();
 
-  // Se estiver sem chave de API em modo mock local
-  if (!process.env.ASAAS_SUBACCOUNT_API_KEY) {
+  if (!apiKey) {
     console.log('[ASAAS MOCK] Retornando ID de cliente mock para CPF:', cleanCpf);
     return `cus_mock_${cleanCpf.substring(0, 6)}`;
   }
 
   try {
-    // 1. Pesquisar cliente existente
-    const searchRes = await fetch(`${ASAAS_API_URL}/customers?cpfCnpj=${cleanCpf}`, {
-      headers: { access_token: ASAAS_API_KEY }
+    const searchRes = await fetch(`${apiUrl}/customers?cpfCnpj=${cleanCpf}`, {
+      headers: { access_token: apiKey }
     });
     const searchData = await searchRes.json();
 
@@ -26,11 +30,10 @@ export async function getOrCreateAsaasCustomer(data: CustomerData): Promise<stri
       return searchData.data[0].id;
     }
 
-    // 2. Criar novo cliente se não encontrado
-    const createRes = await fetch(`${ASAAS_API_URL}/customers`, {
+    const createRes = await fetch(`${apiUrl}/customers`, {
       method: 'POST',
       headers: {
-        access_token: ASAAS_API_KEY,
+        access_token: apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -54,13 +57,13 @@ export async function getOrCreateAsaasCustomer(data: CustomerData): Promise<stri
     throw new Error(newCustomer.errors?.[0]?.description || 'Erro ao cadastrar cliente no Asaas');
   } catch (error) {
     console.error('[ASAAS CUSTOMER ERROR]', error);
-    // Fallback de desenvolvimento
     return `cus_mock_${cleanCpf.substring(0, 6)}`;
   }
 }
 
 /**
- * Cria cobrança no Asaas (Pix, Cartão de Crédito ou Boleto)
+ * Cria cobrança no Asaas (Pix, Cartão ou Boleto).
+ * Política Wisdom: NUNCA incluir `split` no payload.
  */
 export async function createAsaasPayment(params: {
   customerData: CustomerData;
@@ -71,12 +74,10 @@ export async function createAsaasPayment(params: {
   creditCardData?: CreditCardData;
 }): Promise<AsaasPaymentResult> {
   const { customerData, billingType, amount, description, orderId, creditCardData } = params;
-
-  // 1. Obter ID do cliente
+  const { apiUrl, apiKey } = asaasConfig();
   const customerId = await getOrCreateAsaasCustomer(customerData);
 
-  // 2. Se for modo MOCK (sem API Key real configurada)
-  if (!process.env.ASAAS_SUBACCOUNT_API_KEY) {
+  if (!apiKey) {
     console.log('[ASAAS MOCK] Processando cobrança mock:', { billingType, amount, orderId });
 
     if (billingType === 'PIX') {
@@ -87,7 +88,7 @@ export async function createAsaasPayment(params: {
         billingType: 'PIX',
         pixQrCode: {
           encodedImage:
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', // 1x1 mock PNG
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
           payload: `00020126580014br.gov.bcb.pix0136wisdom-wear-pix-${orderId}5204000053039865405${amount.toFixed(
             2
           )}5802BR5915WISDOM WEAR6009SAO PAULO62070503***6304E8A2`,
@@ -101,12 +102,12 @@ export async function createAsaasPayment(params: {
       paymentId: `pay_card_${Date.now()}`,
       status: 'CONFIRMED',
       billingType,
-      invoiceUrl: `https://wisdomwear.com.br/pedidos/${orderId}`
+      invoiceUrl: `${wisdomEnv.appUrl()}/pedidos/${orderId}`
     };
   }
 
-  // 3. Integração real com API Asaas v3
   try {
+    // Sem propriedade `split` — 100% na subconta Wisdom
     const payload: Record<string, unknown> = {
       customer: customerId,
       billingType,
@@ -134,10 +135,10 @@ export async function createAsaasPayment(params: {
       };
     }
 
-    const payRes = await fetch(`${ASAAS_API_URL}/payments`, {
+    const payRes = await fetch(`${apiUrl}/payments`, {
       method: 'POST',
       headers: {
-        access_token: ASAAS_API_KEY,
+        access_token: apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
@@ -152,10 +153,9 @@ export async function createAsaasPayment(params: {
       };
     }
 
-    // Se for PIX, buscar dados do QR Code
     if (billingType === 'PIX') {
-      const qrRes = await fetch(`${ASAAS_API_URL}/payments/${payData.id}/pixQrCode`, {
-        headers: { access_token: ASAAS_API_KEY }
+      const qrRes = await fetch(`${apiUrl}/payments/${payData.id}/pixQrCode`, {
+        headers: { access_token: apiKey }
       });
       const qrData = await qrRes.json();
 

@@ -30,9 +30,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files / multi-tenant secrets
 .env*
+!.env.example
 env/local/
+env/generated/
 
 # vercel
 .vercel

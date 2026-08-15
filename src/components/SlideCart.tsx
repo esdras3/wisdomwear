@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { X, Trash2, ShoppingBag, ArrowRight, Tag, Truck } from 'lucide-react';
+import { X, Trash2, ShoppingBag, ArrowRight, Tag, Truck, RefreshCw } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
+import { PRODUCTS } from '@/data/products';
 
 export default function SlideCart() {
   const {
@@ -12,13 +13,16 @@ export default function SlideCart() {
     closeCart,
     removeItem,
     updateQuantity,
+    addItem,
     getSubtotal,
     getTotal,
+    getPixDiscountAmount,
     getRemainingForFreeShipping,
     freeShippingThreshold,
     applyCoupon,
     couponCode,
-    discountAmount
+    discountAmount,
+    pixDiscountPercent
   } = useCartStore();
 
   const [inputCoupon, setInputCoupon] = useState('');
@@ -26,8 +30,14 @@ export default function SlideCart() {
   const [couponSuccess, setCouponSuccess] = useState('');
   const [inputCep, setInputCep] = useState('');
   const [loadingShipping, setLoadingShipping] = useState(false);
-  const [shippingOptions, setShippingOptions] = useState<{ name: string; price: number; deliveryDays: number }[]>([]);
-  const [selectedShipping, setSelectedShipping] = useState<{ name: string; price: number; deliveryDays: number } | null>(null);
+  const [shippingOptions, setShippingOptions] = useState<
+    { name: string; price: number; deliveryDays: number }[]
+  >([]);
+  const [selectedShipping, setSelectedShipping] = useState<{
+    name: string;
+    price: number;
+    deliveryDays: number;
+  } | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -38,8 +48,11 @@ export default function SlideCart() {
 
   const subtotal = getSubtotal();
   const total = getTotal();
+  const pixTotal = getTotal('PIX');
+  const pixDiscount = getPixDiscountAmount();
   const remainingFreeShipping = getRemainingForFreeShipping();
   const progressPercent = Math.min(100, (subtotal / freeShippingThreshold) * 100);
+  const upsell = PRODUCTS.find((p) => !items.some((i) => i.product.id === p.id));
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,25 +88,26 @@ export default function SlideCart() {
       if (data.rates) {
         setShippingOptions(data.rates);
         setSelectedShipping(data.rates[0]);
-        const { setShippingPrice } = useCartStore.getState();
-        setShippingPrice(data.rates[0].price);
+        useCartStore.getState().setShippingPrice(data.rates[0].price);
       }
     } catch (err) {
-      console.error('Erro ao calcular frete no Melhor Envio:', err);
+      console.error('Erro ao calcular frete:', err);
     } finally {
       setLoadingShipping(false);
     }
   };
 
-  const handleSelectShippingOption = (opt: { name: string; price: number; deliveryDays: number }) => {
+  const handleSelectShippingOption = (opt: {
+    name: string;
+    price: number;
+    deliveryDays: number;
+  }) => {
     setSelectedShipping(opt);
-    const { setShippingPrice } = useCartStore.getState();
-    setShippingPrice(opt.price);
+    useCartStore.getState().setShippingPrice(opt.price);
   };
 
   return (
     <>
-      {/* Overlay Backdrop */}
       <div
         onClick={closeCart}
         style={{
@@ -108,7 +122,6 @@ export default function SlideCart() {
         }}
       />
 
-      {/* Drawer Panel */}
       <aside
         style={{
           position: 'fixed',
@@ -125,7 +138,6 @@ export default function SlideCart() {
           animation: 'slideIn 0.3s ease forwards'
         }}
       >
-        {/* Drawer Header */}
         <div
           style={{
             padding: '20px 24px',
@@ -150,19 +162,37 @@ export default function SlideCart() {
           </button>
         </div>
 
-        {/* Free Shipping Progress Bar */}
         <div style={{ padding: '14px 24px', backgroundColor: '#F5F3EE', borderBottom: '1px solid #eaeaea' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 500, color: '#111111', marginBottom: '8px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '12px',
+              fontWeight: 500,
+              color: '#111111',
+              marginBottom: '8px'
+            }}
+          >
             <Truck size={16} color="#C6A85A" />
             {remainingFreeShipping === 0 ? (
-              <span style={{ color: '#2E7D32', fontWeight: 600 }}>Parabéns! Você ganhou Frete Grátis.</span>
+              <span style={{ color: '#2E7D32', fontWeight: 600 }}>Frete grátis liberado.</span>
             ) : (
               <span>
-                Faltam <strong>R$ {remainingFreeShipping.toFixed(2).replace('.', ',')}</strong> para Frete Grátis!
+                Faltam <strong>R$ {remainingFreeShipping.toFixed(2).replace('.', ',')}</strong> para
+                frete grátis
               </span>
             )}
           </div>
-          <div style={{ width: '100%', height: '6px', backgroundColor: '#eaeaea', borderRadius: '3px', overflow: 'hidden' }}>
+          <div
+            style={{
+              width: '100%',
+              height: '6px',
+              backgroundColor: '#eaeaea',
+              borderRadius: '3px',
+              overflow: 'hidden'
+            }}
+          >
             <div
               style={{
                 width: `${progressPercent}%`,
@@ -174,7 +204,6 @@ export default function SlideCart() {
           </div>
         </div>
 
-        {/* Items List */}
         <div style={{ flexGrow: 1, overflowY: 'auto', padding: '24px' }}>
           {items.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: '#767676' }}>
@@ -201,35 +230,64 @@ export default function SlideCart() {
                     borderBottom: '1px solid #eaeaea'
                   }}
                 >
-                  {/* Thumbnail */}
                   <img
                     src={item.product.images[0]}
                     alt={item.product.name}
-                    style={{ width: '70px', height: '90px', objectFit: 'cover', backgroundColor: '#f9f9f9' }}
+                    style={{
+                      width: '70px',
+                      height: '90px',
+                      objectFit: 'cover',
+                      backgroundColor: '#f9f9f9'
+                    }}
                   />
-
-                  {/* Details */}
-                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div
+                    style={{
+                      flexGrow: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between'
+                    }}
+                  >
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start'
+                        }}
+                      >
                         <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#111111' }}>
                           {item.product.name}
                         </h4>
                         <button
-                          onClick={() => removeItem(item.product.id, item.selectedSize, item.selectedColor.hex)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#767676' }}
+                          onClick={() =>
+                            removeItem(item.product.id, item.selectedSize, item.selectedColor.hex)
+                          }
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#767676'
+                          }}
                           title="Remover"
                         >
                           <Trash2 size={16} />
                         </button>
                       </div>
                       <p style={{ fontSize: '12px', color: '#767676', marginTop: '2px' }}>
-                        Tam: <strong>{item.selectedSize}</strong> | Cor: <strong>{item.selectedColor.name}</strong>
+                        Tam: <strong>{item.selectedSize}</strong> | Cor:{' '}
+                        <strong>{item.selectedColor.name}</strong>
                       </p>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
-                      {/* Quantity Controls */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginTop: '8px'
+                      }}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #eaeaea' }}>
                         <button
                           onClick={() =>
@@ -240,7 +298,13 @@ export default function SlideCart() {
                               item.quantity - 1
                             )
                           }
-                          style={{ width: '26px', height: '26px', background: 'none', border: 'none', cursor: 'pointer' }}
+                          style={{
+                            width: '26px',
+                            height: '26px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer'
+                          }}
                         >
                           -
                         </button>
@@ -256,12 +320,17 @@ export default function SlideCart() {
                               item.quantity + 1
                             )
                           }
-                          style={{ width: '26px', height: '26px', background: 'none', border: 'none', cursor: 'pointer' }}
+                          style={{
+                            width: '26px',
+                            height: '26px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer'
+                          }}
                         >
                           +
                         </button>
                       </div>
-
                       <span style={{ fontSize: '14px', fontWeight: 600, color: '#111111' }}>
                         R$ {(item.product.price * item.quantity).toFixed(2).replace('.', ',')}
                       </span>
@@ -269,19 +338,98 @@ export default function SlideCart() {
                   </div>
                 </div>
               ))}
+
+              {upsell && (
+                <div
+                  style={{
+                    padding: '14px',
+                    border: '1px solid #eaeaea',
+                    backgroundColor: '#F5F3EE'
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '10px',
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      color: '#767676',
+                      marginBottom: '10px',
+                      fontWeight: 600
+                    }}
+                  >
+                    Complete a presença
+                  </p>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <img
+                      src={upsell.images[0]}
+                      alt={upsell.name}
+                      style={{ width: '48px', height: '62px', objectFit: 'cover' }}
+                    />
+                    <div style={{ flexGrow: 1 }}>
+                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#111111' }}>
+                        {upsell.name}
+                      </p>
+                      <p style={{ fontSize: '12px', color: '#C6A85A', fontWeight: 600 }}>
+                        R$ {upsell.price.toFixed(2).replace('.', ',')}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ padding: '8px 10px', fontSize: '10px' }}
+                      onClick={() => addItem(upsell, upsell.colors[0], 'M', 1)}
+                    >
+                      ADICIONAR
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Footer & Checkout Action */}
         {items.length > 0 && (
-          <div style={{ padding: '20px 24px', borderTop: '1px solid #eaeaea', backgroundColor: '#ffffff' }}>
-            {/* Form de Frete com Melhor Envio */}
+          <div
+            style={{
+              padding: '20px 24px',
+              borderTop: '1px solid #eaeaea',
+              backgroundColor: '#ffffff'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                marginBottom: '14px',
+                fontSize: '11px',
+                color: '#767676'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#C6A85A', fontWeight: 700 }}>{pixDiscountPercent}% OFF</span>
+                <span>no Pix — economia de R$ {pixDiscount.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <RefreshCw size={12} color="#C6A85A" />
+                <span>
+                  Troca facilitada em até 30 dias ·{' '}
+                  <Link
+                    href="/trocas"
+                    onClick={closeCart}
+                    style={{ color: '#111111', textDecoration: 'underline' }}
+                  >
+                    saiba mais
+                  </Link>
+                </span>
+              </div>
+            </div>
+
             <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#F5F3EE' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                 <input
                   type="text"
-                  placeholder="Calcular CEP (Melhor Envio)"
+                  placeholder="Calcular CEP"
                   maxLength={9}
                   value={inputCep}
                   onChange={(e) => setInputCep(e.target.value)}
@@ -310,8 +458,12 @@ export default function SlideCart() {
                       onClick={() => handleSelectShippingOption(opt)}
                       style={{
                         padding: '8px',
-                        border: selectedShipping?.name === opt.name ? '1px solid #C6A85A' : '1px solid #eaeaea',
-                        backgroundColor: selectedShipping?.name === opt.name ? '#ffffff' : 'transparent',
+                        border:
+                          selectedShipping?.name === opt.name
+                            ? '1px solid #C6A85A'
+                            : '1px solid #eaeaea',
+                        backgroundColor:
+                          selectedShipping?.name === opt.name ? '#ffffff' : 'transparent',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
@@ -323,7 +475,9 @@ export default function SlideCart() {
                         <strong>{opt.name}</strong> ({opt.deliveryDays} dias úteis)
                       </div>
                       <span style={{ fontWeight: 600, color: '#C6A85A' }}>
-                        {opt.price === 0 ? 'GRÁTIS' : `R$ ${opt.price.toFixed(2).replace('.', ',')}`}
+                        {opt.price === 0
+                          ? 'GRÁTIS'
+                          : `R$ ${opt.price.toFixed(2).replace('.', ',')}`}
                       </span>
                     </div>
                   ))}
@@ -331,7 +485,6 @@ export default function SlideCart() {
               )}
             </div>
 
-            {/* Coupon Form */}
             <form onSubmit={handleApplyCoupon} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
               <div style={{ position: 'relative', flexGrow: 1 }}>
                 <input
@@ -353,17 +506,35 @@ export default function SlideCart() {
                 APLICAR
               </button>
             </form>
-            {couponSuccess && <p style={{ fontSize: '11px', color: '#2E7D32', marginBottom: '12px' }}>{couponSuccess}</p>}
-            {couponError && <p style={{ fontSize: '11px', color: '#C62828', marginBottom: '12px' }}>{couponError}</p>}
+            {couponSuccess && (
+              <p style={{ fontSize: '11px', color: '#2E7D32', marginBottom: '12px' }}>{couponSuccess}</p>
+            )}
+            {couponError && (
+              <p style={{ fontSize: '11px', color: '#C62828', marginBottom: '12px' }}>{couponError}</p>
+            )}
 
-            {/* Summary Lines */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px', marginBottom: '16px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                fontSize: '13px',
+                marginBottom: '16px'
+              }}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#767676' }}>
                 <span>Subtotal</span>
                 <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
               </div>
               {discountAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#2E7D32', fontWeight: 600 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    color: '#2E7D32',
+                    fontWeight: 600
+                  }}
+                >
                   <span>Desconto ({couponCode})</span>
                   <span>- R$ {discountAmount.toFixed(2).replace('.', ',')}</span>
                 </div>
@@ -371,6 +542,18 @@ export default function SlideCart() {
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#767676' }}>
                 <span>Frete</span>
                 <span>{remainingFreeShipping === 0 ? 'GRÁTIS' : 'Calculado no checkout'}</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '13px',
+                  color: '#C6A85A',
+                  fontWeight: 600
+                }}
+              >
+                <span>No Pix ({pixDiscountPercent}% OFF)</span>
+                <span>R$ {pixTotal.toFixed(2).replace('.', ',')}</span>
               </div>
               <div
                 style={{
@@ -389,8 +572,12 @@ export default function SlideCart() {
               </div>
             </div>
 
-            {/* Checkout Button */}
-            <Link href="/checkout" onClick={closeCart} className="btn btn-primary btn-full" style={{ gap: '8px' }}>
+            <Link
+              href="/checkout"
+              onClick={closeCart}
+              className="btn btn-primary btn-full"
+              style={{ gap: '8px' }}
+            >
               FINALIZAR COMPRA <ArrowRight size={16} />
             </Link>
           </div>
@@ -399,8 +586,12 @@ export default function SlideCart() {
 
       <style jsx global>{`
         @keyframes slideIn {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
+          from {
+            transform: translateX(100%);
+          }
+          to {
+            transform: translateX(0);
+          }
         }
       `}</style>
     </>

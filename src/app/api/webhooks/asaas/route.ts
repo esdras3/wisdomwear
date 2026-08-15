@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { wisdomEnv } from '@/lib/env';
 
 export async function POST(req: Request) {
   try {
     const tokenHeader = req.headers.get('asaas-access-token');
-    const secret = process.env.ASAAS_WEBHOOK_SECRET;
+    const secret = wisdomEnv.asaasWebhookSecret();
 
     // Se houver secret configurado no ambiente, validar header
     if (secret && tokenHeader !== secret) {
