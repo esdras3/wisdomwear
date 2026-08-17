@@ -1,19 +1,18 @@
-# Esqueleto cutover VPS — NÃO sobe tráfego até DNS apontar para Contabo
+# Origem interna. DNS só depois das rotas /envio /trocas /termos /privacidade em 200.
+# Porta 18800 bate com o ingress já no túnel. NÃO usar 18834 (sofkagestao-web).
 services:
   wisdomwear-web:
+    image: wisdomwear-web:local
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://wisdomwear.com.br}
+        NEXT_PUBLIC_TENANT_ID: ${NEXT_PUBLIC_TENANT_ID:-wisdomwear}
+        NEXT_PUBLIC_TENANT_NAME: ${NEXT_PUBLIC_TENANT_NAME:-WisdomWear}
     container_name: wisdomwear-web
     restart: unless-stopped
     env_file:
-      - env/generated/.env.local
+      - /opt/wisdomwear-web/runtime.env
     ports:
-      - "172.22.1.1:18834:3000"
-    networks:
-      - mailcow_network
-
-networks:
-  mailcow_network:
-    external: true
-    name: mailcowdockerized_mailcow-network
+      - "172.22.1.1:18800:3000"
